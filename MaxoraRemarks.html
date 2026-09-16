@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maxora Fitness Zone - Remarks Portal</title>
+    
+    <!-- Load jsPDF and AutoTable plugins -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0b0b0b;
+            --card-bg: #141414;
+            --border-color: #2a2a2a;
+            --text-primary: #f3f3f3;
+            --text-secondary: #a0a0a0;
+            --accent: #ffffff;
+            --danger: #ff5252;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 900px;
+            box-sizing: border-box;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin: 0 0 8px 0;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        h2 {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 400;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: #1a1a1a;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: #222222;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit {
+            background-color: var(--accent);
+            color: #000000;
+            border: 1px solid var(--accent);
+        }
+
+        .btn-submit:hover {
+            background-color: #dcdcdc;
+        }
+
+        .btn-download {
+            background-color: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .btn-download:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-clear {
+            background-color: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .btn-clear:hover {
+            background-color: rgba(255, 82, 82, 0.1);
+        }
+
+        /* Makes the table scrollable on phones so it doesn't break the layout */
+        .table-container {
+            margin-top: 40px;
+            overflow-x: auto; 
+            border-radius: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid var(--border-color);
+            background-color: #111111;
+            min-width: 600px; /* Forces table to keep its shape, allowing scrolling */
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: #181818;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        tbody tr:hover {
+            background-color: #161616;
+        }
+
+        .footer-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            font-style: italic;
+            padding: 20px !important;
+        }
+
+        /* -------------------------------------- */
+        /* MOBILE RESPONSIVENESS (Media Queries)  */
+        /* -------------------------------------- */
+        @media (max-width: 650px) {
+            body {
+                padding: 15px 10px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+
+            form {
+                grid-template-columns: 1fr; /* Stack form inputs to 1 column */
+                gap: 15px;
+            }
+
+            .full-width {
+                grid-column: span 1; /* Reset full-width to 1 column */
+            }
+
+            .actions {
+                flex-direction: column; /* Stack buttons vertically */
+                gap: 10px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Maxora Fitness Zone</h1>
+        <h2>Member Remarks Portal</h2>
+    </div>
+
+    <form id="remarksForm">
+        <div class="input-group">
+            <label>MID (Member ID)</label>
+            <input type="text" id="mid" placeholder="e.g. M-1024" required>
+        </div>
+        <div class="input-group">
+            <label>Full Name</label>
+            <input type="text" id="name" placeholder="e.g. John Doe" required>
+        </div>
+        <div class="input-group">
+            <label>Date</label>
+            <input type="date" id="date" required>
+        </div>
+        <div class="input-group">
+            <label>Package</label>
+            <input type="text" id="package" placeholder="e.g. 3 Months, Annual" required>
+        </div>
+        <div class="input-group full-width">
+            <label>Remarks</label>
+            <textarea id="remarks" placeholder="Enter remarks details here..." required></textarea>
+        </div>
+        
+        <div class="actions full-width">
+            <button type="submit" class="btn-submit">Add Record</button>
+            <button type="button" id="downloadBtn" class="btn-download">Download PDF</button>
+            <button type="button" id="clearBtn" class="btn-clear">Clear Records</button>
+        </div>
+    </form>
+
+    <div class="table-container">
+        <table id="recordsTable">
+            <thead>
+                <tr>
+                    <th>MID</th>
+                    <th>Name</th>
+                    <th>Date</th>
+                    <th>Package</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Records load dynamically -->
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="footer-info">
+        <span id="storageStatus">Status: Synced locally</span>
+        <span id="recordCount">Total Records: 0</span>
+    </div>
+</div>
+
+<script>
+    // Load records from localStorage or start empty
+    let records = JSON.parse(localStorage.getItem('maxora_records')) || [];
+
+    // Set today's date as default
+    document.getElementById('date').valueAsDate = new Date();
+
+    const form = document.getElementById('remarksForm');
+    const tableBody = document.getElementById('tableBody');
+    const recordCountDisplay = document.getElementById('recordCount');
+    
+    // Buttons
+    const downloadBtn = document.getElementById('downloadBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    // Initial render on page load
+    updateTable();
+
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const mid = document.getElementById('mid').value.trim();
+        const name = document.getElementById('name').value.trim();
+        const date = document.getElementById('date').value;
+        const packageType = document.getElementById('package').value.trim();
+        const remarks = document.getElementById('remarks').value.trim();
+
+        const record = { mid, name, date, packageType, remarks };
+        
+        // Push record and update storage
+        records.push(record);
+        localStorage.setItem('maxora_records', JSON.stringify(records));
+
+        // Update UI
+        updateTable();
+        
+        // Reset form inputs (keep date default)
+        form.reset();
+        document.getElementById('date').valueAsDate = new Date();
+        document.getElementById('mid').focus();
+    });
+
+    // Update the HTML table display
+    function updateTable() {
+        tableBody.innerHTML = '';
+        
+        if (records.length === 0) {
+            const emptyRow = document.createElement('tr');
+            emptyRow.innerHTML = `<td colspan="5" class="empty-state">No records entered yet. Entries will persist on refresh.</td>`;
+            tableBody.appendChild(emptyRow);
+        } else {
+            records.forEach(rec => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${escapeHtml(rec.mid)}</td>
+                    <td>${escapeHtml(rec.name)}</td>
+                    <td>${escapeHtml(rec.date)}</td>
+                    <td>${escapeHtml(rec.packageType)}</td>
+                    <td>${escapeHtml(rec.remarks)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        recordCountDisplay.textContent = `Total Records: ${records.length}`;
+    }
+
+    // Handle PDF Download (No longer clears data)
+    downloadBtn.addEventListener('click', function() {
+        if (records.length === 0) {
+            alert("No records available to download!");
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape');
+
+        // Clean document header
+        doc.setFontSize(20);
+        doc.setFont("helvetica", "bold");
+        doc.text("MAXORA FITNESS ZONE", 14, 20);
+        
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text("Member Remarks Report", 14, 28);
+        
+        doc.setFontSize(9);
+        const timestamp = new Date().toLocaleString();
+        doc.text(`Generated on: ${timestamp}`, 14, 35);
+
+        const tableColumn = ["MID", "Name", "Date", "Package", "Remarks"];
+        const tableRows = records.map(rec => [rec.mid, rec.name, rec.date, rec.packageType, rec.remarks]);
+
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 42,
+            theme: 'grid',
+            styles: {
+                lineColor: [40, 40, 40],
+                lineWidth: 0.1,
+                textColor: [0, 0, 0],
+                font: 'helvetica',
+                fontSize: 10
+            },
+            headStyles: {
+                fillColor: [230, 230, 230],
+                textColor: [0, 0, 0],
+                fontStyle: 'bold'
+            }
+        });
+
+        const today = new Date().toISOString().split('T')[0];
+        doc.save(`Maxora_Remarks_${today}.pdf`);
+        
+        // Notify user that they can now clear manually
+        setTimeout(() => {
+            alert("PDF Downloaded successfully. Don't forget to click 'Clear Records' when you are ready to start a new batch.");
+        }, 500);
+    });
+
+    // Handle Manual Clear
+    clearBtn.addEventListener('click', function() {
+        if (records.length === 0) {
+            alert("The table is already empty.");
+            return;
+        }
+        
+        // Ask for confirmation before deleting
+        const confirmClear = confirm("Are you sure you want to clear all records? Please ensure you have downloaded your PDF first.");
+        
+        if (confirmClear) {
+            records = [];
+            localStorage.removeItem('maxora_records');
+            updateTable();
+        }
+    });
+
+    // Simple security helper to escape HTML inputs in table preview
+    function escapeHtml(str) {
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+</script>
+
+</body>
+</html>
